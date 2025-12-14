@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Create the client instance using the environment variable directly as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'FAKE_API_KEY_FOR_DEVELOPMENT' });
 
 export interface WasteAnalysisResult {
   wasteName: string;
