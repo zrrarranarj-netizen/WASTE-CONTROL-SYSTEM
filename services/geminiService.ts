@@ -1,7 +1,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Create the client instance using the environment variable directly as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'FAKE_API_KEY_FOR_DEVELOPMENT' });
+// Robustly handle the API key. 
+// In Vite via vite.config.ts define, process.env.API_KEY will be replaced by the string value or undefined.
+// We cast to string | undefined to handle TypeScript checks.
+const apiKey = process.env.API_KEY as string | undefined;
+
+// Initialize with the key if present, otherwise allow it to fail gracefully during the call
+const ai = new GoogleGenAI({ apiKey: apiKey || 'missing-key' });
 
 export interface WasteAnalysisResult {
   wasteName: string;
@@ -12,7 +17,10 @@ export interface WasteAnalysisResult {
 }
 
 export const analyzeWasteImage = async (base64Image: string, mimeType: string): Promise<WasteAnalysisResult> => {
-  // API key validation is handled by the environment assumption as per guidelines
+  // explicit check for easier debugging for the user
+  if (!apiKey || apiKey === 'undefined' || apiKey.length < 10) {
+    throw new Error("Gemini API Key is missing or invalid. Please add 'API_KEY' to your Vercel/Netlify Environment Variables.");
+  }
 
   const prompt = `
     Analyze this image of waste material. 
@@ -62,13 +70,28 @@ export const analyzeWasteImage = async (base64Image: string, mimeType: string): 
 
     const text = response.text;
     if (!text) {
-      throw new Error("No response from AI");
+      throw new Error("No response received from AI service.");
     }
 
-    return JSON.parse(text) as WasteAnalysisResult;
+    // Clean markdown code blocks if present (e.g. ```json ... ```)
+    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
 
-  } catch (error) {
+    try {
+      return JSON.parse(cleanedText) as WasteAnalysisResult;
+    } catch (e) {
+      console.error("Failed to parse JSON:", cleanedText);
+      throw new Error("AI response was not valid JSON. Please try again.");
+    }
+
+  } catch (error: any) {
     console.error("Error analyzing waste:", error);
-    throw error;
+    // Provide user-friendly error messages
+    if (error.message?.includes('API_KEY')) {
+       throw error;
+    }
+    if (error.status === 403) {
+      throw new Error("API Key invalid or quota exceeded. Please check your Google Cloud Console.");
+    }
+    throw new Error(error.message || "Failed to analyze image. Please try again.");
   }
 };

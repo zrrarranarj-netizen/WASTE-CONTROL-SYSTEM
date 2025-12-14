@@ -29,7 +29,7 @@ const WasteDetector: React.FC = () => {
           }
         } catch (err) {
           console.error("Camera access error:", err);
-          setError("Unable to access camera. Please check permissions.");
+          setError("Unable to access camera. Please check permissions or use file upload.");
           setIsCameraOpen(false);
         }
       };
@@ -139,8 +139,9 @@ const WasteDetector: React.FC = () => {
 
       const analysisResult = await analyzeWasteImage(base64Data, mimeType);
       setResult(analysisResult);
-    } catch (err) {
-      setError("Failed to analyze image. Please try again or use a clearer image.");
+    } catch (err: any) {
+      // Display the specific error message from the service
+      setError(err.message || "Failed to analyze image. Please try again.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -160,7 +161,7 @@ const WasteDetector: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500 mb-2">
-          Waste Detection System .gpt.ai
+          Waste Detection System
         </h1>
         <p className="text-slate-600 max-w-2xl mx-auto">
           Upload an image or take a photo of any waste item. Our deep learning model will identify it, 
