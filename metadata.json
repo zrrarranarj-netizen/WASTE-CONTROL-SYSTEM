@@ -1,0 +1,7 @@
+{
+  "name": "waste control system using deep learing in smart city",
+  "description": "A Smart City deep learning application for detecting, classifying, and providing recycling instructions for over 40,000 waste materials using Gemini AI.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
