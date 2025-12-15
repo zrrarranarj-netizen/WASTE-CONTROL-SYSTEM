@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Scan, Recycle, Leaf, Trash2, CheckCircle, AlertCircle, Camera } from 'lucide-react';
+import { Upload, X, Scan, Recycle, Leaf, Trash2, CheckCircle, AlertCircle, Camera, MapPin, Zap, AlertTriangle } from 'lucide-react';
 import { analyzeWasteImage, WasteAnalysisResult } from '../services/geminiService';
 
 const WasteDetector: React.FC = () => {
@@ -8,9 +8,33 @@ const WasteDetector: React.FC = () => {
   const [result, setResult] = useState<WasteAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationName, setLocationName] = useState<string>("Detecting location...");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Initialize Geolocation
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          // Simulate reverse geocoding
+          setLocationName(`${position.coords.latitude.toFixed(4)}° N, ${position.coords.longitude.toFixed(4)}° E`);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setLocationName("Location access denied");
+        }
+      );
+    } else {
+      setLocationName("Geolocation not supported");
+    }
+  }, []);
 
   // Manage Camera Stream
   useEffect(() => {
@@ -157,15 +181,36 @@ const WasteDetector: React.FC = () => {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch(category) {
+      case 'Organic': return 'text-green-600 bg-green-50 border-green-200';
+      case 'Hazardous': return 'text-red-600 bg-red-50 border-red-200';
+      case 'E-Waste': return 'text-purple-600 bg-purple-50 border-purple-200';
+      default: return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch(category) {
+      case 'Organic': return <Leaf className="w-8 h-8 text-green-500 mb-2" />;
+      case 'Hazardous': return <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />;
+      case 'E-Waste': return <Zap className="w-8 h-8 text-purple-500 mb-2" />;
+      default: return <Trash2 className="w-8 h-8 text-blue-500 mb-2" />;
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center p-2 bg-blue-50 rounded-full mb-3 text-blue-700 text-xs font-semibold tracking-wide border border-blue-100">
+          <MapPin className="w-3 h-3 mr-1" />
+          Smart City Node: {locationName}
+        </div>
         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500 mb-2">
           Waste Detection System
         </h1>
         <p className="text-slate-600 max-w-2xl mx-auto">
-          Upload an image or take a photo of any waste item. Our deep learning model will identify it, 
-          classify it, and guide you on the proper recycling procedure.
+          Deep learning enabled scanner. Identify waste, classify materials, and receive real-time disposal instructions synced with the Smart City Grid.
         </p>
       </div>
 
@@ -264,12 +309,12 @@ const WasteDetector: React.FC = () => {
               {isLoading ? (
                 <>
                   <Scan className="w-6 h-6 mr-2 animate-pulse" />
-                  Analyzing Waste...
+                  Processing...
                 </>
               ) : (
                 <>
                   <Scan className="w-6 h-6 mr-2" />
-                  Identify Waste
+                  Analyze Waste
                 </>
               )}
             </button>
@@ -290,7 +335,7 @@ const WasteDetector: React.FC = () => {
               <Recycle className="w-16 h-16 text-slate-300 mb-4" />
               <h3 className="text-lg font-semibold text-slate-400">Analysis Results</h3>
               <p className="text-sm text-slate-400 max-w-xs mt-2">
-                Results will appear here after the AI processes your image.
+                Scan an item to receive recycling instructions and bin color codes.
               </p>
             </div>
           )}
@@ -312,13 +357,9 @@ const WasteDetector: React.FC = () => {
 
           {result && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden transition-all duration-500 ease-out">
-              <div className={`p-6 ${
-                result.category === 'Organic' ? 'bg-pink-50 border-b border-pink-100' : 'bg-blue-50 border-b border-blue-100'
-              }`}>
+              <div className={`p-6 border-b ${getCategoryColor(result.category).replace('text-', 'border-').split(' ')[2]}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                    result.category === 'Organic' ? 'bg-pink-200 text-pink-800' : 'bg-blue-200 text-blue-800'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(result.category).split(' ').slice(0, 2).join(' ')}`}>
                     {result.category}
                   </span>
                   <span className="text-xs font-mono text-slate-500">
@@ -348,24 +389,18 @@ const WasteDetector: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center text-center">
-                    {result.category === 'Organic' ? (
-                       <Leaf className="w-8 h-8 text-pink-500 mb-2" />
-                    ) : (
-                       <Trash2 className="w-8 h-8 text-blue-500 mb-2" />
-                    )}
-                    <span className="text-xs text-slate-500 font-semibold">Bin Color</span>
-                    <span className={`font-bold ${
-                      result.category === 'Organic' ? 'text-pink-600' : 'text-blue-600'
-                    }`}>
-                       {result.category === 'Organic' ? 'Green Bin' : 'Blue/Yellow Bin'}
+                  <div className="p-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center text-center border border-slate-100">
+                    {getCategoryIcon(result.category)}
+                    <span className="text-xs text-slate-500 font-semibold mb-1">Target Bin</span>
+                    <span className="font-bold text-slate-800 text-lg">
+                       {result.binColor}
                     </span>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center text-center">
+                  <div className="p-4 bg-slate-50 rounded-xl flex flex-col items-center justify-center text-center border border-slate-100">
                     <CheckCircle className="w-8 h-8 text-teal-500 mb-2" />
-                    <span className="text-xs text-slate-500 font-semibold">Recyclable?</span>
-                    <span className="font-bold text-teal-600">
-                      Yes, Check Local
+                    <span className="text-xs text-slate-500 font-semibold mb-1">Status</span>
+                    <span className="font-bold text-teal-600 text-sm">
+                      Log Reported to City
                     </span>
                   </div>
                 </div>
