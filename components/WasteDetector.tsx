@@ -207,7 +207,7 @@ const WasteDetector: React.FC = () => {
           Smart City Node: {locationName}
         </div>
         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500 mb-2">
-          Waste Detection System
+          Waste Control System Using Deep Learning in Smart City
         </h1>
         <p className="text-slate-600 max-w-2xl mx-auto">
           Deep learning enabled scanner. Identify waste, classify materials, and receive real-time disposal instructions synced with the Smart City Grid.

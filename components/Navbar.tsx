@@ -17,7 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout, currentPage, onNavigate }) =>
               <Leaf className="h-6 w-6 text-white" />
             </div>
             <span className="ml-3 text-sm md:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500 leading-tight">
-              Waste Control System with Deep Learning in Smart City
+              Waste Control System Using Deep Learning in Smart City
             </span>
           </div>
           
