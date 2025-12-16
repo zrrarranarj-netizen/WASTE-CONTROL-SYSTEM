@@ -125,15 +125,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         
         {/* Header */}
         <div className="p-8 pb-6 flex flex-col items-center">
-           <div className="relative w-20 h-20 mb-4">
-              <div className="absolute inset-0 rounded-full border-[4px] border-emerald-700 flex items-center justify-center bg-emerald-50 shadow-inner">
-                <Trash2 className="w-10 h-10 text-emerald-700 mb-1" strokeWidth={2.5} />
-              </div>
-              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 border-[3px] border-emerald-700 shadow-md">
-                <Search className="w-4 h-4 text-emerald-700" strokeWidth={3} />
-              </div>
+           <div className="w-24 h-24 mb-4 rounded-full bg-white p-1 border-2 border-emerald-100 shadow-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/en/0/01/Government_College_University_Logo.jpg" 
+                alt="Government College University Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <h1 className="text-xl font-black text-emerald-900 tracking-tight">WASTE CONTROL SYSTEM</h1>
+            <h1 className="text-xl font-black text-emerald-900 tracking-tight text-center">WASTE CONTROL SYSTEM</h1>
             <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-1">Smart City Portal</p>
         </div>
 
