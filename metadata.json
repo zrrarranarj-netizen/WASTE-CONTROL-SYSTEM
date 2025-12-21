@@ -3,6 +3,18 @@
   "description": "A Smart City deep learning application for detecting, classifying, and providing recycling instructions for over 40,000 waste materials using Gemini AI.",
   "requestFramePermissions": [
     "camera",
+    "microphone",
     "geolocation"
-  ]
+  ],
+  "android": {
+    "permissions": [
+      "CAMERA",
+      "ACCESS_FINE_LOCATION",
+      "INTERNET"
+    ],
+    "features": [
+      "android.hardware.camera",
+      "android.hardware.location.gps"
+    ]
+  }
 }
