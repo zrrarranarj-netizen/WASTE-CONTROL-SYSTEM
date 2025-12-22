@@ -1,12 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Robustly handle the API key. 
-// In Vite via vite.config.ts define, process.env.API_KEY will be replaced by the string value or undefined.
-// We cast to string | undefined to handle TypeScript checks.
-const apiKey = process.env.API_KEY as string | undefined;
-
-// Initialize with the key if present, otherwise allow it to fail gracefully during the call
-const ai = new GoogleGenAI({ apiKey: apiKey || 'missing-key' });
+// Initialize the API client using process.env.API_KEY.
+// The key is assumed to be provided by the environment.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export interface WasteAnalysisResult {
   wasteName: string;
@@ -18,11 +14,6 @@ export interface WasteAnalysisResult {
 }
 
 export const analyzeWasteImage = async (base64Image: string, mimeType: string): Promise<WasteAnalysisResult> => {
-  // explicit check for easier debugging for the user
-  if (!apiKey || apiKey === 'undefined' || apiKey.length < 10) {
-    throw new Error("Gemini API Key is missing or invalid. Please add 'API_KEY' to your Vercel/Netlify Environment Variables.");
-  }
-
   const prompt = `
     Analyze this image of waste material in the context of a Smart City waste management system. 
     Identify the specific item from a database of over 40,000 waste materials.
@@ -36,7 +27,7 @@ export const analyzeWasteImage = async (base64Image: string, mimeType: string): 
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
           {
@@ -76,25 +67,15 @@ export const analyzeWasteImage = async (base64Image: string, mimeType: string): 
       throw new Error("No response received from AI service.");
     }
 
-    // Clean markdown code blocks if present (e.g. ```json ... ```)
-    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-
     try {
-      return JSON.parse(cleanedText) as WasteAnalysisResult;
+      return JSON.parse(text) as WasteAnalysisResult;
     } catch (e) {
-      console.error("Failed to parse JSON:", cleanedText);
+      console.error("Failed to parse JSON:", text);
       throw new Error("AI response was not valid JSON. Please try again.");
     }
 
   } catch (error: any) {
     console.error("Error analyzing waste:", error);
-    // Provide user-friendly error messages
-    if (error.message?.includes('API_KEY')) {
-       throw error;
-    }
-    if (error.status === 403) {
-      throw new Error("API Key invalid or quota exceeded. Please check your Google Cloud Console.");
-    }
     throw new Error(error.message || "Failed to analyze image. Please try again.");
   }
 };
